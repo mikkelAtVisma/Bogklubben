@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader
 from torch.nn import CrossEntropyLoss
 import numpy as np
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 with open("mnist.pkl","rb") as f:
     mnist = pickle.load(f)
@@ -64,8 +65,8 @@ def score(pred,target): #Accuracy
 
 
 # Define optimizer-algorithm
-
-optimizer = torch.optim.Adam(params = net.parameters(),lr = 0.0005)
+optimizer = torch.optim.Adam(params = net.parameters(),lr = 0.001)
+scheduler = ReduceLROnPlateau(optimizer,mode="min",patience = 5,verbose=True)
 
 TRAIN_LOSS = np.zeros(N_EPOCHS)
 VAL_LOSS = np.zeros(N_EPOCHS)
@@ -101,6 +102,7 @@ for e in range(0,N_EPOCHS):
     val_pred = net(X_val.float())
     val_loss = loss(val_pred,y_val.long())
     val_score = score(val_pred,y_val)
+    scheduler.step(val_loss)
 
 
     TRAIN_LOSS[e] = train_loss
